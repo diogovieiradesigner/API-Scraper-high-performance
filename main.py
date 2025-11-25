@@ -96,8 +96,6 @@ class ScrapeRequest(BaseModel):
     extract_images: bool = False
     take_screenshot: bool = False
     timeout: int = 20000
-    use_proxy: bool = True
-    proxy_url: Optional[str] = None
 
 class SocialMedia(BaseModel):
     linkedin: List[str] = []
@@ -160,29 +158,11 @@ class ScrapeResponse(BaseModel):
 PLAYWRIGHT_INSTANCE = None
 BROWSER: Optional[Browser] = None
 SEMAPHORE: Optional[asyncio.Semaphore] = None
-PROXY_LIST: List[str] = []
 ACTIVE_CONNECTIONS = 0
 REQUEST_COUNT = 0
 UA_GENERATOR = None
 
 # --- Funções Auxiliares ---
-
-async def fetch_proxies():
-    """Busca proxies gratuitos da ProxyScrape no startup."""
-    global PROXY_LIST
-    url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=BR&ssl=all&anonymity=all"
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    text = await response.text()
-                    proxies = [p.strip() for p in text.splitlines() if p.strip()]
-                    PROXY_LIST = proxies
-                    logger.info(f"Carregados {len(PROXY_LIST)} proxies.")
-                else:
-                    logger.warning(f"Falha ao buscar proxies: Status {response.status}")
-    except Exception as e:
-        logger.error(f"Erro ao buscar proxies: {e}")
 
 async def init_browser():
     """Inicializa ou Reinicializa o Browser."""
@@ -403,24 +383,10 @@ async def execute_scraping_task(request: ScrapeRequest) -> ScrapeResponse:
     start_time = time.perf_counter()
 
     try:
-        # Proxy Configuration
+        # Proxy Configuration: ALWAYS NONE (no proxy functionality)
         proxy_config = None
-        
-        # 1. Prioridade: Proxy Customizado via Body
-        if request.proxy_url and request.proxy_url.strip():
-            p_url = request.proxy_url
-            if not p_url.startswith("http"):
-                p_url = f"http://{p_url}"
-            proxy_config = {"server": p_url}
             
-        # 2. Fallback: Proxy Rotativo Gratuito (se ativado)
-        elif request.use_proxy and PROXY_LIST:
-            p_url = random.choice(PROXY_LIST)
-            if not p_url.startswith("http"):
-                p_url = f"http://{p_url}"
-            proxy_config = {"server": p_url}
-
-        logger.info(f"Iniciando navegação para {request.url} | Proxy Config: {proxy_config} | Use Proxy Flag: {request.use_proxy}")
+        logger.info(f"Iniciando navegação para {request.url} | Proxy Config: NULO (funcionalidade removida)")
 
         # User Agent Rotativo e Realista
         try:
@@ -431,13 +397,13 @@ async def execute_scraping_task(request: ScrapeRequest) -> ScrapeResponse:
         try:
             context = await BROWSER.new_context(
                 user_agent=user_agent,
-                proxy=proxy_config,
+                proxy=proxy_config, # Sempre None agora
                 viewport={"width": 1280 + random.randint(0, 100), "height": 720 + random.randint(0, 100)}, # Viewport randomizado
                 locale="pt-BR",
                 timezone_id="America/Sao_Paulo"
             )
         except Exception as e:
-            logger.warning(f"Falha ao criar contexto com proxy, tentando sem: {e}")
+            logger.warning(f"Falha ao criar contexto, usando configuração padrão: {e}")
             context = await BROWSER.new_context(user_agent=user_agent)
 
         # --- INJEÇÃO DE STEALTH AVANÇADO ---
@@ -625,7 +591,6 @@ async def lifespan(app: FastAPI):
         UA_GENERATOR = None
         logger.warning("Fake UserAgent falhou, usando fallback.")
 
-    await fetch_proxies()
     await init_browser()
     
     yield
@@ -634,7 +599,7 @@ async def lifespan(app: FastAPI):
     if BROWSER: await BROWSER.close()
     if PLAYWRIGHT_INSTANCE: await PLAYWRIGHT_INSTANCE.stop()
 
-app = FastAPI(lifespan=lifespan, title="High-Performance Scraper API (Enhanced 2025)")
+app = FastAPI(lifespan=lifespan, title="High-Performance Scraper API (Enhanced 2025 - No Proxies)")
 
 # --- Endpoints ---
 
@@ -643,8 +608,8 @@ async def health_check():
     return {
         "status": "online",
         "active_connections": ACTIVE_CONNECTIONS,
-        "proxies_loaded": len(PROXY_LIST),
         "request_count_since_restart": REQUEST_COUNT,
+        "proxy_functionality": "REMOVIDA",
         "ram_available_system": "Check via Docker Stats"
     }
 
