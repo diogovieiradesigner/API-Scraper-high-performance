@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+playwright
+aiohttp
+beautifulsoup4
+lxml
+html2text
+pydantic
+tenacity
+trafilatura
+fake-useragent

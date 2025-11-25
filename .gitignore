@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Editor/IDE-specific files
+.idea/
+*.swp
+*.bak
+*.swo
+.vscode/
+.env
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Virtual environment
+venv/
+env/
+
+# Logs and databases
+*.log
+*.sqlite3
+*.db
+
+# Docker
+*.dockerignore
+# Exclude .env files in Docker Compose, but keep it in .gitignore
+# .env
+
+# OS generated files
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Playwright
+test-results/
+playwright-report/
+
+# Fake-UserAgent Cache
+fake_useragent.json

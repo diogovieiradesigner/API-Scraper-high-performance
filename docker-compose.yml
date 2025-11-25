@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  scraper-api:
+    build: .
+    container_name: scraper-api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - MAX_CONCURRENCY=20
+      - PYTHONUNBUFFERED=1
+      # - PORT=8000 # Opcional, usado por alguns PaaS
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 10G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
