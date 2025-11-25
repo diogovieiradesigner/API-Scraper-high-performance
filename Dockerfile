@@ -1,27 +1,35 @@
-# Base Image otimizada para Playwright e Python
+# Base Image oficial do Playwright (já inclui dependências e browsers)
 FROM mcr.microsoft.com/playwright/python:v1.41.0-jammy
 
 # Define diretório de trabalho
 WORKDIR /app
 
-# Configurações de ambiente
+# Variáveis de Ambiente
 ENV PYTHONUNBUFFERED=1
-ENV MAX_CONCURRENCY=5
-# Garante que o Playwright saiba onde procurar os browsers
+ENV MAX_CONCURRENCY=20
+# Garante que o Playwright use o caminho correto
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+# Atualiza lista de pacotes e instala dependências básicas (garantia extra)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copia e instala dependências Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Instala o navegador Chromium e dependências do sistema
-# --with-deps garante que libs do Linux necessárias sejam instaladas
-RUN playwright install chromium --with-deps
+# Instalação do Chromium
+# O comando oficial da imagem Microsoft já traz os navegadores em /ms-playwright.
+# Mas vamos rodar o install apenas para garantir compatibilidade de versão.
+RUN playwright install chromium
 
-# Copia o código fonte (respeitando o .dockerignore)
+# Copia o código fonte
 COPY main.py .
 
-# Expõe a porta da API
+# Expõe a porta
 EXPOSE 8000
 
 # Comando de inicialização
