@@ -4,8 +4,10 @@ playwright
 aiohttp
 beautifulsoup4
 lxml
+lxml_html_clean
 html2text
 pydantic
 tenacity
 trafilatura
 fake-useragent
+requests

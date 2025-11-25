@@ -4,18 +4,21 @@ FROM mcr.microsoft.com/playwright/python:v1.41.0-jammy
 # Define diretório de trabalho
 WORKDIR /app
 
-# Configurações de ambiente para evitar buffer e definir concorrência padrão
+# Configurações de ambiente
 ENV PYTHONUNBUFFERED=1
 ENV MAX_CONCURRENCY=5
+# Garante que o Playwright saiba onde procurar os browsers
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-# Copia e instala dependências
+# Copia e instala dependências Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Instala apenas o navegador necessário (Chromium) para economizar espaço/tempo
-RUN playwright install chromium
+# Instala o navegador Chromium e dependências do sistema
+# --with-deps garante que libs do Linux necessárias sejam instaladas
+RUN playwright install chromium --with-deps
 
-# Copia o código fonte
+# Copia o código fonte (respeitando o .dockerignore)
 COPY main.py .
 
 # Expõe a porta da API
