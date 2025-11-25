@@ -407,7 +407,7 @@ async def execute_scraping_task(request: ScrapeRequest) -> ScrapeResponse:
         proxy_config = None
         
         # 1. Prioridade: Proxy Customizado via Body
-        if request.proxy_url:
+        if request.proxy_url and request.proxy_url.strip():
             p_url = request.proxy_url
             if not p_url.startswith("http"):
                 p_url = f"http://{p_url}"
@@ -419,6 +419,8 @@ async def execute_scraping_task(request: ScrapeRequest) -> ScrapeResponse:
             if not p_url.startswith("http"):
                 p_url = f"http://{p_url}"
             proxy_config = {"server": p_url}
+
+        logger.info(f"Iniciando navegação para {request.url} | Proxy Config: {proxy_config} | Use Proxy Flag: {request.use_proxy}")
 
         # User Agent Rotativo e Realista
         try:
